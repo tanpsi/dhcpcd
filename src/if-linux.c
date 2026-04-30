@@ -1979,6 +1979,12 @@ if_address(unsigned char cmd, const struct ipv4_addr *ia)
 	nlm.ifa.ifa_family = AF_INET;
 
 	nlm.ifa.ifa_prefixlen = inet_ntocidr(ia->mask);
+	if (ia->iface->flags & IFF_LOOPBACK)
+		nlm.ifa.ifa_scope = RT_SCOPE_HOST;
+	else if (IN_LINKLOCAL(ntohl(ia->addr.s_addr)))
+		nlm.ifa.ifa_scope = RT_SCOPE_LINK;
+	else
+		nlm.ifa.ifa_scope = RT_SCOPE_UNIVERSE;
 
 #if 0
 	/* This creates the aliased interface */
@@ -2043,6 +2049,12 @@ if_address6(unsigned char cmd, const struct ipv6_addr *ia)
 
 	/* Add as /128 if no IFA_F_NOPREFIXROUTE ? */
 	nlm.ifa.ifa_prefixlen = ia->prefix_len;
+	if (ia->iface->flags & IFF_LOOPBACK)
+		nlm.ifa.ifa_scope = RT_SCOPE_HOST;
+	else if (IN6_IS_ADDR_LINKLOCAL(&ia->addr))
+		nlm.ifa.ifa_scope = RT_SCOPE_LINK;
+	else
+		nlm.ifa.ifa_scope = RT_SCOPE_UNIVERSE;
 
 #if 0
 	/* This creates the aliased interface */
